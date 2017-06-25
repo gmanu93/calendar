@@ -1,0 +1,187 @@
+<html>
+<head>
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="Calendar.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet'>
+
+</head>
+
+<body>
+  <h1>Calendar</h1>
+  <hr>
+<div class="wrapper">
+<div class="profile">
+   <table id= "calendar" border="1">
+   <thead>
+        <th class="event">Event</th>
+        <th class="date">Date</th>
+        </thead>
+        <tbody>
+
+       </tbody>
+       </table> <br>
+</div>
+</div>
+
+<table id= "form" border="0">
+
+<tr><td><p>Start Date:</td> <td><input type="text" id="datep" value="2017-6-1" class="fdate"></p></td></tr>
+<tr><td><p>Number of days:</td> <td><input type="number" id="numofdays" class="field"></p></td></tr>
+<tr><td><p>Country code:</td> <td><input type="text" value="US" id="ccode" class="field"></p></td></tr>
+</table>
+<br>
+<input type="hidden" id="calc" value="" class="calc">
+<input type="hidden" id="year" value="" class="year">
+<input type="hidden" id="month" value="" class="month">
+<input type="hidden" id="gotodate" value="" class="gotodate">
+<input type="hidden" id="gotodate1" value="" class="gotodate1">
+
+<button id="load">Load</button>
+<br><br>
+<hr>
+
+<div id="datepicker"></div><br><br>
+<button id="clear">Clear</button>
+<script>
+
+// Date Field Conf
+
+
+$( function () {
+
+
+  $( "#datep" ).datepicker({
+  dateFormat: 'yy-mm-dd',
+  onSelect: function (dateStr, inst) {
+        var nights = parseInt($('#numofdays').val());
+        var depart = $.datepicker.parseDate('yy-mm-dd', dateStr);
+        depart.setDate(depart.getDate('yy-mm-dd') + nights);
+        $('#calc').val(depart.toLocaleDateString() );
+        }
+        });
+
+ });
+
+// Functions
+
+var vdate1 = [];
+var vdate2 = [];
+
+$( "#clear" ).click(function() {
+  location.reload();
+});
+
+$( "#load" ).click(function() {
+
+if ($("#datep").val() == "" || $("#numofdays").val() == "" || $("#ccode").val() == "" ) {
+  alert("Please Complete Fields!")
+} else {
+
+// Disable Button
+
+$(this).prop("disabled",true);
+
+// Get Date var
+
+      var date_data = $("#datep").val();
+
+// Date format for redirection
+
+      var goto1 = $('#datep').val().replace(','-'-').split('-');
+      $('#gotodate1').val(goto1[0] + ',' + goto1[1] + ',' + goto1[2]);
+      var gotodate1 = $("#gotodate1").val();
+
+  $( function () {
+
+ // Refresh data
+
+    $( "#datep" ).datepicker({
+    dateFormat: 'yy-mm-dd',
+    onSelect: function (dateStr, inst) {
+    var nights = parseInt($('#numofdays').val());
+    var depart = $.datepicker.parseDate('yy-mm-dd', dateStr);
+    depart.setDate(depart.getDate('yy-mm-dd') + nights);
+    $('#calc').val(depart.toLocaleDateString() );
+    }
+    });
+
+    $('#datep').datepicker("setDate", new Date(gotodate1) );
+    $('.ui-datepicker-current-day').click();
+
+   });
+
+  $(function() {
+
+// Date Format for DBs
+
+    var text2 = $('.fdate').val().split('-');
+    $('.year').val(text2[0]);
+    $('.month').val(text2[1]);
+
+    var text_value = $("#ccode").val();
+    var year = $("#year").val();
+    var month = $("#month").val();
+
+// Get Events from JSON
+
+         $.getJSON("https://holidayapi.com/v1/holidays?key=5113a0f8-da9b-466a-bc7b-42ef7120acce&country=" + text_value + "&year=" + year + "&month=" + month + "", function(data) {
+         $.each(data.holidays, function(i, f) {
+         var tblRow = "<tr>" + "<td>" + f.name + "</td>" + "<td><input type='text' class='eventdt" + (i+1) + "' value='" + f.date + "'></td>" +  "</tr>"
+         $(tblRow).appendTo("#calendar tbody");
+
+// Event Format for Calendar
+
+         var text3 = $('.eventdt1').val().replace(','-'-').split('-');
+         $('.eventdt1').val(text3[1] + '/' + text3[2] + '/' + text3[0]);
+         var eventdt = $(".eventdt1").val();
+
+         var text = $('.calc').val().replace(','/'/').split('/');
+         $('.calc').val(text[2] + '-' + text[1] + '-' + text[0]);
+
+         var date2_calc = $("#calc").val();
+
+ // Get Range
+
+ vdate1.push(date_data);
+ vdate2.push(date2_calc);
+
+ var date1 = new Date(vdate1);
+ var date2 = new Date(vdate2);
+
+ var goto = $('#datep').val().replace(','-'-').split('-');
+ $('#gotodate').val(goto[1] + '/' + goto[2] + '/' + goto[0]);
+ var gotodate = $("#gotodate").val();
+
+ var dates = [eventdt];
+
+    $('#datepicker').datepicker({
+    dateFormat: 'yy-mm-dd',
+    defaultDate: new Date(gotodate),
+    beforeShowDay: show
+    });
+
+    function show (date) {
+    debugger
+    for (var i = 0; i < dates.length; i++) {
+    if (new Date(dates[i]).toString() == date.toString()) {
+    return [true, 'hld', "Evento"];
+    }
+      if (date >= date1 && date <= date2) {
+      return [true, 'ui-state-error', 'tooltipText'];
+      }1
+      }
+      return [false, '', '',];
+      }
+  });
+  });
+  });
+  $("#clear").css("display", "block");
+}});
+
+</script>
+
+</body>
+</html>
